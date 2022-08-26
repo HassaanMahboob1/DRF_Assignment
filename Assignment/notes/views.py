@@ -11,6 +11,7 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework import generics
 from rest_framework import serializers
 from rest_framework.permissions import IsAuthenticated
+from rest_framework import viewsets
 
 from django.core import serializers
 
@@ -21,26 +22,23 @@ class RegisterUserAPIView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
 
 
-class NotesAPIView(generics.CreateAPIView):
-    permission_classes = (IsAuthenticated,)
+class NotesViewSet(viewsets.ModelViewSet):
     serializer_class = NotesSerializer
+    permission_classes = (IsAuthenticated,)
+    queryset = Notes.objects.all()
 
-    def get(self, request):
+    def list(self, request):
         queryset = Notes.objects.all()
         user = request.user
         queryset = queryset.filter(user=user)
         data = serializers.serialize("json", queryset)
         return HttpResponse(data, content_type="application/json")
 
-    # def put(self, request, pk, format=None):
-    #   snippet = self.get_object(pk)
-    #   serializer = SnippetSerializer(snippet, data=request.DATA)
-    #   if serializer.is_valid():
-    #       serializer.save()
-    #       return Response(serializer.data)
-    #   return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, pk):
-        snippet = self.get_object(pk)
-        snippet.delete()
-        return HttpResponse("Object has deleted")
+    # def partial_update(self, request, *args, **kwargs):
+    #     id = kwargs['pk']
+    #     queryset = Notes.objects.all()
+    #     user = request.user
+    #     queryset = queryset.filter(user=user , id = id)
+    #     print(queryset)
+    #     data = serializers.serialize("json", queryset)
+    #     return HttpResponse(data, content_type="application/json")

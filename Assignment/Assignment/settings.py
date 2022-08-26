@@ -130,6 +130,13 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
+    "PAGE_SIZE": 10,
 }
 
 AUTH_USER_MODEL = "notes.User"
+
+from django.conf import settings
+from datetime import timedelta
+
+AUTH_TOKEN_VALIDITY = getattr(settings, "AUTH_TOKEN_VALIDITY", timedelta(days=1))
