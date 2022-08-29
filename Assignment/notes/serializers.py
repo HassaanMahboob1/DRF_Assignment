@@ -41,9 +41,12 @@ class NotesSerializer(serializers.ModelSerializer):
         model = Notes
         fields = "__all__"
 
-    def create(self, validated_date):
+    def create(self, validated_data):
+        print(validated_data)
         note = Notes.objects.create(
-            text=validated_date["text"],
+            text=validated_data["text"],
+            title=validated_data["title"],
+            archive=validated_data["archive"],
             date_created=date.today(),
             date_updated=date.today(),
             user=self.context["request"].user,
