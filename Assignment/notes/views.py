@@ -2,6 +2,7 @@ from django.shortcuts import render, HttpResponse
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.serializers import *
+from rest_framework.response import Response
 from .serializers import RegisterSerializer, NotesSerializer
 from notes.models import User, Notes
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
@@ -9,6 +10,9 @@ from rest_framework import generics
 from rest_framework import serializers
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
+from notes.filters import ArchiveFilter
+from notes.permissions import SuperUserReadOnly
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import (
     api_view,
     authentication_classes,
@@ -35,6 +39,32 @@ class NotesViewSet(viewsets.ModelViewSet):
         return HttpResponse(data, content_type="application/json")
 
 
+class ArchiveViewSet(viewsets.ModelViewSet):
+    serializer_class = NotesSerializer
+    filter_class = ArchiveFilter
+    filter_backends = (DjangoFilterBackend,)
+    permission_classes = (
+        IsAuthenticated,
+        SuperUserReadOnly,
+    )
+    queryset = Notes.objects.all()
+
+    def list(self, request):
+        queryset = Notes.objects.all()
+        user = request.user
+        queryset = queryset.filter(user=user, archive=1)
+        data = serializers.serialize("json", queryset)
+        return HttpResponse(data, content_type="application/json")
+
+    def post(self, request, *args, **kwargs):
+        # self.check_object_permissions(request,object)
+        queryset = Notes.objects.all()
+        queryset = queryset.filter(pk=kwargs["pk"])
+        queryset.update(archive=1)
+        data = serializers.serialize("json", queryset)
+        return HttpResponse(data, content_type="application/json")
+
+
 @api_view(["GET", "PATCH"])
 def shared(request):
     queryset = Notes.objects.all()
@@ -42,24 +72,3 @@ def shared(request):
     queryset = queryset.filter(sharedwith=curr_user)
     data = serializers.serialize("json", queryset)
     return HttpResponse(data, content_type="application/json")
-
-
-@api_view(["POST"])
-def archive(request, id):
-    queryset = Notes.objects.all()
-    queryset = queryset.filter(pk=id)
-    queryset.update(archive=1)
-    if request.method == "POST":
-        data = serializers.serialize("json", queryset)
-        return HttpResponse(data, content_type="application/json")
-
-
-@api_view(["GET"])
-@permission_classes((IsAuthenticated,))
-def archivelist(request):
-    queryset = Notes.objects.all()
-    user = request.user
-    queryset = queryset.filter(user=user, archive=1)
-    if request.method == "GET":
-        data = serializers.serialize("json", queryset)
-        return HttpResponse(data, content_type="application/json")
