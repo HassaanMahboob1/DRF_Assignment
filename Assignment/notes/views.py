@@ -12,7 +12,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
 from notes.filters import ArchiveFilter
 from notes.permissions import SuperUserReadOnly
-from django_filters.rest_framework import DjangoFilterBackend
+from django_filters import rest_framework as filters
 from rest_framework.decorators import (
     api_view,
     authentication_classes,
@@ -40,14 +40,13 @@ class NotesViewSet(viewsets.ModelViewSet):
 
 
 class ArchiveViewSet(viewsets.ModelViewSet):
-    serializer_class = NotesSerializer
-    filter_class = ArchiveFilter
-    filter_backends = (DjangoFilterBackend,)
-    permission_classes = (
-        IsAuthenticated,
-        SuperUserReadOnly,
-    )
     queryset = Notes.objects.all()
+    serializer_class = NotesSerializer
+    # filter_backends = (filters.DjangoFilterBackend,)
+    # filterset_fields = ('archive',)
+    permission_classes = [
+        SuperUserReadOnly,
+    ]
 
     def list(self, request):
         queryset = Notes.objects.all()
@@ -57,7 +56,6 @@ class ArchiveViewSet(viewsets.ModelViewSet):
         return HttpResponse(data, content_type="application/json")
 
     def post(self, request, *args, **kwargs):
-        # self.check_object_permissions(request,object)
         queryset = Notes.objects.all()
         queryset = queryset.filter(pk=kwargs["pk"])
         queryset.update(archive=1)
