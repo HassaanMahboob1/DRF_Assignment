@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "notes.apps.NotesConfig",
     "rest_framework_simplejwt",
     "django_filters",
+    "rest_framework.authtoken",
 ]
 
 MIDDLEWARE = [

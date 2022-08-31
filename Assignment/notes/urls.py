@@ -9,6 +9,6 @@ router.register("archive", ArchiveViewSet, basename="Notes")
 
 
 urlpatterns = [
-    path("register", RegisterUserAPIView.as_view()),
+    path("register", RegisterUserAPIView.as_view(), name="register"),
     path("shared", views.shared, name="shared"),
 ] + router.urls
